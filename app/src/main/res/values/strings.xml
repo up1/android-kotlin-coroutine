@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Demo Coroutine with Kotlin</string>
-    <string name="single_network_call">Single Call API</string>
+    <string name="single_network_call">Call API</string>
 </resources>
