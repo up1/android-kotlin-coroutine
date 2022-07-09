@@ -23,8 +23,12 @@ class SingleViewModel (
         viewModelScope.launch {
             users.postValue(Resource.loading(null))
             try {
-                val usersFromApi = apiService.getUsers()
-                users.postValue(Resource.success(usersFromApi))
+                val users01 = apiService.getUsers()
+                val moreUsers = apiService.getMoreUsers()
+                val all = mutableListOf<ApiUser>()
+                all.addAll(users01)
+                all.addAll(moreUsers)
+                users.postValue(Resource.success(all))
             } catch (e: Exception) {
                 users.postValue(Resource.error(e.toString(), null))
             }
