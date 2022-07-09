@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Demo Coroutine with Kotlin</string>
     <string name="single_network_call">Call API</string>
+    <string name="long_running_process">Call Long Running Process</string>
 </resources>

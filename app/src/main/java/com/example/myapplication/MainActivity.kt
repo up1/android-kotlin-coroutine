@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import com.example.myapplication.ui.longrunning.LongRunningActivity
 import com.example.myapplication.ui.single.SingleActivity
 
 class MainActivity : AppCompatActivity() {
@@ -14,5 +15,9 @@ class MainActivity : AppCompatActivity() {
 
     fun startSingleCall(view: View) {
         startActivity(Intent(this, SingleActivity::class.java))
+    }
+
+    fun startLongRunning(view: View) {
+        startActivity(Intent(this, LongRunningActivity::class.java))
     }
 }
