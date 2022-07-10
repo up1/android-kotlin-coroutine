@@ -7,13 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.ApiUser
 import com.example.myapplication.data.api.ApiService
 import com.example.myapplication.util.Resource
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-class SingleViewModel (
+class SingleViewModel(
     private val apiService: ApiService
-        ): ViewModel() {
+) : ViewModel() {
 
     private val users = MutableLiveData<Resource<List<ApiUser>>>()
 
@@ -45,6 +46,30 @@ class SingleViewModel (
 
     fun getAllUsers(): LiveData<Resource<List<ApiUser>>> {
         return users
+    }
+
+
+    // Working with CoroutineExceptionHandler
+    private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        users.postValue(Resource.error(exception.toString(), null))
+    }
+
+    private fun fetchUsersFromApiWithHandler() {
+        viewModelScope.launch(exceptionHandler) {
+            users.postValue(Resource.loading(null))
+            // Catch error in coroutine
+            coroutineScope {
+                val users01 = async { apiService.getUsers() }
+                val moreUsers = async { apiService.getMoreUsers() }
+                val errors = async { apiService.getUsersWithError() }
+
+                val all = mutableListOf<ApiUser>()
+                all.addAll(users01.await())
+                all.addAll(moreUsers.await())
+                all.addAll(errors.await())
+                users.postValue(Resource.success(all))
+            }
+        }
     }
 
 }
