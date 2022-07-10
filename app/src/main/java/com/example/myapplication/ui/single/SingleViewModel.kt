@@ -7,10 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.data.model.ApiUser
 import com.example.myapplication.data.api.ApiService
 import com.example.myapplication.util.Resource
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class SingleViewModel(
     private val apiService: ApiService
@@ -19,7 +16,7 @@ class SingleViewModel(
     private val users = MutableLiveData<Resource<List<ApiUser>>>()
 
     init {
-        fetchUsersFromApi()
+        fetchUsersFromApiWithSupervisor()
     }
 
     private fun fetchUsersFromApi() {
@@ -68,6 +65,48 @@ class SingleViewModel(
                 all.addAll(moreUsers.await())
                 all.addAll(errors.await())
                 users.postValue(Resource.success(all))
+            }
+        }
+    }
+
+    // Working with supervisor
+    private fun fetchUsersFromApiWithSupervisor() {
+        viewModelScope.launch {
+            users.postValue(Resource.loading(null))
+            try {
+                // Catch error in coroutine
+                supervisorScope {
+                    val usersDeferred = async { apiService.getUsers() }
+                    val moreUsersDeferred = async { apiService.getMoreUsers() }
+                    val errorsDeferred = async { apiService.getUsersWithError() }
+
+                    val all = mutableListOf<ApiUser>()
+
+                    val users01 = try {
+                        usersDeferred.await()
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+
+                    val moreUsers = try {
+                        moreUsersDeferred.await()
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+
+                    val errors = try {
+                        errorsDeferred.await()
+                    } catch (e: Exception) {
+                        emptyList()
+                    }
+
+                    all.addAll(users01)
+                    all.addAll(moreUsers)
+                    all.addAll(errors)
+                    users.postValue(Resource.success(all))
+                }
+            } catch (e: Exception) {
+                users.postValue(Resource.error(e.toString(), null))
             }
         }
     }
